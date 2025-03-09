@@ -12,3 +12,5 @@ sp unit(cores)计算单精度，ld unit计算双精度。
 CPU的概念映射到GPU中，并不是cores，GPU的core更类似于cpu当中的ALU，功能甚至比alu更少
 
 gpu中和CPU的core相对应的概念是SM(streaming multiprocessor).
+
+每个SM能持有的warp数量有限（硬件）-> 每个block能持有的thread数量有限（软件）
