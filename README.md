@@ -20,3 +20,7 @@ gpu中和CPU的core相对应的概念是SM(streaming multiprocessor).
 每个SM能持有的warp数量有限（硬件）-> 每个block能持有的thread数量有限（软件）
 
 通过起足够数量的线程，来hide latency.
+
+### lecture 4
+
+L1缓存一个line是128byte，而一个wrap有32个线程，128/4=32.
