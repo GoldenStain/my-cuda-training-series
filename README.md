@@ -26,3 +26,6 @@ gpu中和CPU的core相对应的概念是SM(streaming multiprocessor).
 L1缓存一个line是128bytes，而一个warp有32个线程，128/4=32.
 
 CUDA GPU的一个segment大小为32bytes.
+
+shared memory的组织形式：
+32 banks, 4-byte wide banks.
