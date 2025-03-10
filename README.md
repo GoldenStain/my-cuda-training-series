@@ -5,6 +5,10 @@ You can find the slides and presentation recordings at https://www.olcf.ornl.gov
 
 ## 小笔记
 
+## lecture 1 & 2
+
+Idx.x和Idx.y分别表示x方向和y方向，所以我们应该用Idx.y来表示行，Idx.x来表示列。
+
 ### lecture 3
 
 sp unit(cores)计算单精度，ld unit计算双精度。
