@@ -23,4 +23,6 @@ gpu中和CPU的core相对应的概念是SM(streaming multiprocessor).
 
 ### lecture 4
 
-L1缓存一个line是128byte，而一个wrap有32个线程，128/4=32.
+L1缓存一个line是128bytes，而一个warp有32个线程，128/4=32.
+
+CUDA GPU的一个segment大小为32bytes.
