@@ -29,3 +29,6 @@ CUDA GPU的一个segment大小为32bytes.
 
 shared memory的组织形式：
 32 banks, 4-byte wide banks.
+其上限通常是48KB
+
+如果大量的线程都要访问同一个bank的资源，导致其因为串行调度而变慢，我们可以使用名叫"padding"的技巧，来打乱bank的内存布局，从而使我们的访问重新并行化。
