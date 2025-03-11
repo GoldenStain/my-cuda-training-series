@@ -37,6 +37,7 @@ __global__ void mmul(const float *A, const float *B, float *C, int ds) {
     for (int i = 0; i < ds/block_size; i++) {
 
       // Load data into shared memory
+      // 一个block当中的thread共同完成加载，然后每个thread在计算的时候，都可以利用已经加载出来的共享内存。
       As[threadIdx.y][threadIdx.x] = A[idy * ds + (i * block_size + threadIdx.x)];
       Bs[threadIdx.y][threadIdx.x] = B[(i * block_size + threadIdx.y) * ds + idx];
 
