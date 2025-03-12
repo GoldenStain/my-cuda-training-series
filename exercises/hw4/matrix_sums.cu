@@ -48,7 +48,7 @@ int main(){
 
   float *h_A, *h_sums, *d_A, *d_sums;
   h_A = new float[DSIZE*DSIZE];  // allocate space for data in host memory
-  h_sums = new float[DSIZE]();
+  h_sums = new float[DSIZE](); // 这里的小括号是调用默认初始化，对于float也就是0.0
     
   for (int i = 0; i < DSIZE*DSIZE; i++)  // initialize matrix in host memory
     h_A[i] = 1.0f;
