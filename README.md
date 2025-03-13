@@ -38,3 +38,5 @@ shared memory的组织形式：
 `Transformation`: 输出和输入规模相同，我们只需要一个线程负责一个输出就好了
 
 `reduction`：输出规模远小于输入规模，我们需要考虑新的并行策略。
+
+核心知识点：`Atomics`,`warp_shuffle`
