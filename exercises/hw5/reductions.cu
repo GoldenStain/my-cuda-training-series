@@ -68,20 +68,25 @@ __global__ void reduce_ws(float *gdata, float *out) {
     unsigned mask = 0xFFFFFFFFU;
     int lane = threadIdx.x % warpSize;
     int warpID = threadIdx.x / warpSize;
+    // 先通过grid-stride来收集整个数组上的信息
     while (idx < N) {  // grid stride loop to load
         val += gdata[idx];
         idx += gridDim.x * blockDim.x;
     }
 
+    // 第一轮求和，每个warp内部reduce
     // 1st warp-shuffle reduction
     for (int offset = warpSize / 2; offset > 0; offset >>= 1)
         val += __shfl_down_sync(mask, val, offset);
+    // 每个warp的结果放到一个位置上，每个block内部的warp数量不会超过32
     if (lane == 0) sdata[warpID] = val;
     __syncthreads();  // put warp results in shared mem
 
+    // 每个线程只用一个第一个warp来汇总结果
     // hereafter, just warp 0
     if (warpID == 0) {
         // reload val from shared mem if warp existed
+        // tid*warpSize说明tid对应的warp存在，否则说明已经越界，没有这么多warp
         val = (tid < blockDim.x / warpSize) ? sdata[lane] : 0;
 
         // final warp-shuffle reduction
