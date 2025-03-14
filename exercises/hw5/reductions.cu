@@ -92,7 +92,7 @@ __global__ void reduce_ws(float *gdata, float *out) {
     }
 }
 
-void test(float* h_A, float *h_sum, float* d_A, float* d_sum) {
+int test(float* h_A, float *h_sum, float* d_A, float* d_sum) {
     cudaMalloc(&d_A, N*sizeof(float));
     cudaMalloc(&d_sum, sizeof(float));
     cudaCheckErrors("cudaMalloc failure");
@@ -100,7 +100,16 @@ void test(float* h_A, float *h_sum, float* d_A, float* d_sum) {
     cudaCheckErrors("cudaMemcpy H2D failure");
     cudaMemset(d_sum, 0, sizeof(float));
     cudaCheckErrors("cudaMemset failure");
-    
+    int blocks = 640;
+    reduce_ws<<<blocks, BLOCK_SIZE>>>(d_A, d_sum);
+    cudaCheckErrors("reduce function failed!");
+    cudaMemcpy(h_sum, d_sum, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaCheckErrors("memcpy from device to host failed!");
+    if (*h_sum != (float)N) {
+        printf("atomic sum reduction incorrect!\n");
+        return -1;
+    }
+    return 0;
 }
 
 int main() {
@@ -109,8 +118,7 @@ int main() {
     h_sum = new float;
     for (int i = 0; i < N; i++)  // initialize matrix in host memory
         h_A[i] = 1.0f;
-    test(h_A, h_sum, d_A, d_sum);
-    return 0;
+    return test(h_A, h_sum, d_A, d_sum);
     // --------------------------------------------------------------------------------------------------------------------
     cudaMalloc(&d_A, N * sizeof(float));    // allocate device space for A
     cudaMalloc(&d_sum, sizeof(float));      // allocate device space for sum
