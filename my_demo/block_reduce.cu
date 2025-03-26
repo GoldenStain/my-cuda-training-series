@@ -40,9 +40,10 @@ __global__ void block_reduce_demo() {
     
     float sum = block_reduce_sum<4>(val); // 128/32=4 warps
     
-    if (idx == 0) {
-        printf("\n*** Final Block Sum = %.1f ***\n", sum);
-    }
+    // if (idx == 0) {
+    //     printf("\n*** Final Block Sum = %.1f ***\n", sum);
+    // }
+    printf("\n***On thread%d, the sum is : %.1f***\n", idx, sum);
 }
 
 int main() {
