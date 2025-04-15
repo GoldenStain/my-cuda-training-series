@@ -44,6 +44,7 @@ __global__ void block_all_reduce_sum_fp32(float *a, float *y, int N) {
   sum = (lane < NUM_WARPS) ? reduce_smem[lane] : 0.0f;
   if (warp == 0)
     sum = warp_reduce_sum_fp32<WARP_SIZE>(sum);
+  // Now we have the Sum in this block, then we should add it to the answer: y.
   if (tid == 0)
     atomicAdd(y, sum);
 }
