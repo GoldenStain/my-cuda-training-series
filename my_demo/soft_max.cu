@@ -98,9 +98,9 @@ __global__ void softmax_fp32x4_per_token_kernel(float *x, float *y, int N) {
     const int tid = threadIdx.x, idx = (blockIdx.x * NUM_THREADS + tid) << 2;
     float4 reg_x = FLOAT4(x), reg_exp;
     reg_exp.x = (idx < N)?expf(reg_x.x):0.0f;
-    reg_exp.y = (idx < N)?expf(reg_x.y):0.0f;
-    reg_exp.z = (idx < N)?expf(reg_x.z):0.0f;
-    reg_exp.w = (idx < N)?expf(reg_x.w):0.0f;
+    reg_exp.y = (idx + 1 < N)?expf(reg_x.y):0.0f;
+    reg_exp.z = (idx + 2 < N)?expf(reg_x.z):0.0f;
+    reg_exp.w = (idx + 3 < N)?expf(reg_x.w):0.0f;
     float value = reg_exp.x + reg_exp.y + reg_exp.z + reg_exp.w;
     float exp_sum = block_reduce_sum_fp32<NUM_THREADS>(value);
     if (idx + 3 < N) {
