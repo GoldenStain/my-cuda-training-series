@@ -146,7 +146,7 @@ __global__ void safe_softmax_fp32x4_per_token_kernel(float *x, float *y, int N) 
     reg_exp.x = (idx + 0 < N) ? expf(reg_x.x - max_val) : 0.0f;
     reg_exp.y = (idx + 1 < N) ? expf(reg_x.y - max_val) : 0.0f;
     reg_exp.z = (idx + 2 < N) ? expf(reg_x.z - max_val) : 0.0f;
-    reg_exp.y = (idx + 3 < N) ? expf(reg_x.w - max_val) : 0.0f;
+    reg_exp.w = (idx + 3 < N) ? expf(reg_x.w - max_val) : 0.0f;
     float exp_val = (reg_exp.x + reg_exp.y + reg_exp.z + reg_exp.w);
     float exp_sum = block_reduce_sum_fp32(exp_val);
     if (idx + 3 < N) {
@@ -158,6 +158,8 @@ __global__ void safe_softmax_fp32x4_per_token_kernel(float *x, float *y, int N) 
         FLOAT4(y[idx]) = reg_y;
     }
 }
+
+// reduce for online softmax
 
 // CPU参考实现（按照你的kernel逻辑）
 void softmax_cpu(const float *x, float *y, int N) {
