@@ -1,4 +1,6 @@
 #include <__clang_cuda_builtin_vars.h>
+#include <cfloat>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cuda_runtime.h>
@@ -56,6 +58,7 @@ __device__ float block_reduce_sum_fp32(float val) {
   static __shared__ float shared[NUM_WARPS];
 
   float value = warp_reduce_sum_fp32<WARP_SIZE>(val);
+  
   if (lane == 0)
     shared[warp] = value;
   __syncthreads();
@@ -103,6 +106,49 @@ __global__ void softmax_fp32x4_per_token_kernel(float *x, float *y, int N) {
     reg_exp.w = (idx + 3 < N)?expf(reg_x.w):0.0f;
     float value = reg_exp.x + reg_exp.y + reg_exp.z + reg_exp.w;
     float exp_sum = block_reduce_sum_fp32<NUM_THREADS>(value);
+    if (idx + 3 < N) {
+        float4 reg_y;
+        reg_y.x = reg_exp.x / exp_sum;
+        reg_y.y = reg_exp.y / exp_sum;
+        reg_y.z = reg_exp.z / exp_sum;
+        reg_y.w = reg_exp.w / exp_sum;
+        FLOAT4(y[idx]) = reg_y;
+    }
+}
+
+// safe-softmax
+template <const int NUM_THREADS = 256>
+__global__ void safe_softmax_fp32_per_token_kernel(float *x, float *y, int N) {
+    const int tid = threadIdx.x, idx = blockIdx.x * NUM_THREADS + tid;
+    float val = (idx < N) ? x[idx] : -FLT_MAX;
+    float max_val = block_reduce_max_fp32(val);
+    float exp_val = (idx < N) ? expf(x[idx] - max_val) : 0.0F;
+    float exp_sum = block_reduce_sum_fp32<NUM_THREADS>(exp_val);
+    if (idx < N)
+        y[idx] = exp_val / exp_sum;
+}
+
+// float4 version of safe-softmax
+template<const int NUM_THREADS = 256/4>
+__global__ void safe_softmax_fp32x4_per_token_kernel(float *x, float *y, int N) {
+    const int tid = threadIdx.x, idx = (blockIdx.x * NUM_THREADS + tid) << 2;
+    float4 reg_x = FLOAT4(x[idx]);
+    reg_x.x = (idx + 0 < N) ? reg_x.x : -FLT_MAX;
+    reg_x.y = (idx + 1 < N) ? reg_x.y : -FLT_MAX;
+    reg_x.z = (idx + 2 < N) ? reg_x.z : -FLT_MAX;
+    reg_x.w = (idx + 3 < N) ? reg_x.w : -FLT_MAX;
+    float val = reg_x.x;
+    val = fmaxf(val, reg_x.y);
+    val = fmaxf(val, reg_x.z);
+    val = fmaxf(val, reg_x.w);
+    float max_val = block_reduce_max_fp32<NUM_THREADS>(val);
+    float4 reg_exp;
+    reg_exp.x = (idx + 0 < N) ? expf(reg_x.x - max_val) : 0.0f;
+    reg_exp.y = (idx + 1 < N) ? expf(reg_x.y - max_val) : 0.0f;
+    reg_exp.z = (idx + 2 < N) ? expf(reg_x.z - max_val) : 0.0f;
+    reg_exp.y = (idx + 3 < N) ? expf(reg_x.w - max_val) : 0.0f;
+    float exp_val = (reg_exp.x + reg_exp.y + reg_exp.z + reg_exp.w);
+    float exp_sum = block_reduce_sum_fp32(exp_val);
     if (idx + 3 < N) {
         float4 reg_y;
         reg_y.x = reg_exp.x / exp_sum;
