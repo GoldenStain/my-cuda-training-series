@@ -86,6 +86,7 @@ __device__ float block_reduce_max_fp32(float val) {
   return value;
 }
 
+// naive softmax
 template <const int NUM_THREADS = 256>
 __global__ void softmax_fp32_per_token_kernel(float *x, float *y, int N) {
   int tid = threadIdx.x, idx = blockIdx.x * NUM_THREADS + tid;
@@ -96,6 +97,7 @@ __global__ void softmax_fp32_per_token_kernel(float *x, float *y, int N) {
     y[idx] = exp_val / exp_sum;
 }
 
+// float4 naive softmax
 template <const int NUM_THREADS = 256/4>
 __global__ void softmax_fp32x4_per_token_kernel(float *x, float *y, int N) {
     const int tid = threadIdx.x, idx = (blockIdx.x * NUM_THREADS + tid) << 2;
@@ -158,8 +160,6 @@ __global__ void safe_softmax_fp32x4_per_token_kernel(float *x, float *y, int N) 
         FLOAT4(y[idx]) = reg_y;
     }
 }
-
-// reduce for online softmax
 
 // CPU参考实现（按照你的kernel逻辑）
 void softmax_cpu(const float *x, float *y, int N) {
