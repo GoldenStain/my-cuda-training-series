@@ -1,0 +1,21 @@
+{
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "comment.line",
+                "settings": {
+                    "foreground": "#608B4E", // 普通注释颜色
+                    "fontStyle": "italic"
+                }
+            },
+            {
+                "name": "Comment Keywords (TODO/FIXME)",
+                "scope": "comment.line.todo, comment.line.fixme",
+                "settings": {
+                    "foreground": "#FF0000", // TODO/FIXME 颜色
+                    "fontStyle": "bold italic"
+                }
+            }
+        ]
+    }
+}
