@@ -208,6 +208,7 @@ __global__ void online_safe_softmax_f32_per_token_kernel(float *x, float *y,
   }
   __syncthreads();
 
+  // 用第一个warp去计算全局的res
   if (tid < WARP_SIZE) {
     MD block_res = shared[lane_id];
     block_res = warp_reduce_md_op<WARP_NUM>(block_res);
