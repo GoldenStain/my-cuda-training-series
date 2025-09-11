@@ -11,6 +11,7 @@ __global__ void ScanAndWritePartSumKernel(const int32_t *input, int32_t *part,
       int32_t acc = 0;
       for (size_t i = part_begin; i < part_end; ++i) {
         acc += input[i];
+        // 先让output[i]变成局部前缀和
         output[i] = acc;
       }
       part[part_i] = acc;
@@ -32,6 +33,7 @@ __global__ void AddBaseSumKernel(int32_t *part, int32_t *output, size_t n,
     }
     int32_t index = part_i * blockDim.x + threadIdx.x;
     if (index < n) {
+      // output[index]已经是当前块内的局部前缀和了，这时候再加上前面所有块的前缀和，就是答案。
       output[index] += part[part_i - 1];
     }
   }
