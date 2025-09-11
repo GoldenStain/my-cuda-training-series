@@ -2,17 +2,11 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
-<<<<<<< HEAD
+#define OFFSET(row, col, ld) ((row) * (ld) + (col))
+
 __global__ void sgemm_V1(float *__restrict__ a, float *__restrict__ b,
                          float *__restrict__ c, const int M, const int N,
                          const int K) {
-=======
-#define OFFSET(row, col, ld) ((row) * (ld) + (col))
-
-__global__ void sgemm_V1(
-    float * __restrict__ a, float * __restrict__ b, float * __restrict__ c,
-    const int M, const int N, const int K) {
->>>>>>> ee23ad4 (add macro definition)
 
   /*
   在我们的例子里，
@@ -68,7 +62,8 @@ __global__ void sgemm_V1(
   int load_a_smem_m = tid >> 1; // tid/2, row of s_a
   // 当前thread负责加载的第一个数在s_a中的col
   // XYM: s_a有8列，一个thread一口气填入四个元素，所以有8/4 =
-  // XYM: 2个有效值，所以只需要一个有效位就可以，又因为起始值是四的倍数，所以要左移两位。
+  // XYM:
+  // 2个有效值，所以只需要一个有效位就可以，又因为起始值是四的倍数，所以要左移两位。
   int load_a_smem_k = (tid & 1) << 2; // (tid % 2 == 0) ? 0 : 4, col of s_a
 
   // 当前thread负责把B中的相关数据从global memory加载到SMEM，
@@ -95,7 +90,7 @@ __global__ void sgemm_V1(
   // 因此A对应的行号不变，B对应的列号不变
   // 总体形势是这样的：（从A来看）对于同一个thread来说，他负责的块，在不同循环间，是在同一行内部滑动的
   // 而对于同一个block内，不同thread来说，他们是在不同行，相同列上，排成一竖，同步地“向右扫描”
-  // 对B同理 
+  // 对B同理
   // ----- XYM -----
   int load_a_gmem_m = by * BM + load_a_smem_m; // global row of a
   int load_b_gmem_n = bx * BN + load_b_smem_n; // global col of b
@@ -148,7 +143,8 @@ __global__ void sgemm_V1(
           int comp_b_smem_n = tx * TN + n;
           // 每次从SMEM上，各加载渐变红和渐变黄上的1个元素，到register，然后再计算
           // ----- XYM -----
-          // 在不同的bk之间，即不同的大循环之间，按照我们的切分方式，答案是累积到同一块子矩阵上，因此是r_c[][] += ...，相当于all_reduce.
+          // 在不同的bk之间，即不同的大循环之间，按照我们的切分方式，答案是累积到同一块子矩阵上，因此是r_c[][]
+          // += ...，相当于all_reduce.
           // 在不同的thread之间，根据切分方式，他们维护的子矩阵互相独立，相当于all_gather
           // ----- XYM -----
           r_c[m][n] += s_a[comp_a_smem_m][k] * s_b[k][comp_b_smem_n];
