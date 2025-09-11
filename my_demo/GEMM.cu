@@ -139,6 +139,11 @@ __global__ void sgemm_V1(float *__restrict__ a, float *__restrict__ b,
       for (int m = 0; m < TM; m++) {
 #pragma unroll
         for (int n = 0; n < TN; n++) {
+          // ----- XYM -----
+          // A的视角：在同一个block内部，不同的thread之间,ty相差1，那么ty*TM就差一个TM，他们的行号就刚好隔了一个(TM)的小矩阵
+          // 对同一个thread来说，在不同的循环之间，就是在遍历当前这个(TM)小矩阵，计算当前矩阵的和
+          // 对B而言，则是对称的
+          // ----- XYM -----
           int comp_a_smem_m = ty * TM + m;
           int comp_b_smem_n = tx * TN + n;
           // 每次从SMEM上，各加载渐变红和渐变黄上的1个元素，到register，然后再计算
