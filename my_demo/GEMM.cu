@@ -2,9 +2,17 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
+<<<<<<< HEAD
 __global__ void sgemm_V1(float *__restrict__ a, float *__restrict__ b,
                          float *__restrict__ c, const int M, const int N,
                          const int K) {
+=======
+#define OFFSET(row, col, ld) ((row) * (ld) + (col))
+
+__global__ void sgemm_V1(
+    float * __restrict__ a, float * __restrict__ b, float * __restrict__ c,
+    const int M, const int N, const int K) {
+>>>>>>> ee23ad4 (add macro definition)
 
   /*
   在我们的例子里，
