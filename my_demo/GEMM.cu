@@ -129,6 +129,7 @@ __global__ void sgemm_V1(float *__restrict__ a, float *__restrict__ b,
     2. 在block的单次循环中，每个thread采用split-by-k的方式，
     逐步累加计算当前thread所维护的(TM, TN)块的结果
     */
+    // XYM: 实际的矩阵乘法
     // 遍历每一个(渐变红，渐变黄)对，可参见图例
     for (int k = 0; k < BK; k++) {
 #pragma unroll
@@ -138,6 +139,10 @@ __global__ void sgemm_V1(float *__restrict__ a, float *__restrict__ b,
           int comp_a_smem_m = ty * TM + m;
           int comp_b_smem_n = tx * TN + n;
           // 每次从SMEM上，各加载渐变红和渐变黄上的1个元素，到register，然后再计算
+          // ----- XYM -----
+          // 在不同的bk之间，即不同的大循环之间，按照我们的切分方式，答案是累积到同一块子矩阵上，因此是r_c[][] += ...，相当于all_reduce.
+          // 在不同的thread之间，根据切分方式，他们维护的子矩阵互相独立，相当于all_gather
+          // ----- XYM -----
           r_c[m][n] += s_a[comp_a_smem_m][k] * s_b[k][comp_b_smem_n];
         }
       }
@@ -146,6 +151,7 @@ __global__ void sgemm_V1(float *__restrict__ a, float *__restrict__ b,
     __syncthreads();
   }
 
+  // 写回的逻辑最简单，最直观.
 #pragma unroll
   /*
   3.
