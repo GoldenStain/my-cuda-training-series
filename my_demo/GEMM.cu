@@ -4,6 +4,8 @@
 
 #define OFFSET(row, col, ld) ((row) * (ld) + (col))
 
+// 从global_memory搬数据到shared_memory的时候，把ty和tx合成了，只使用tid.
+// 而计算的时候则是两个维度分开，分别表示行和列.
 __global__ void sgemm_V1(float *__restrict__ a, float *__restrict__ b,
                          float *__restrict__ c, const int M, const int N,
                          const int K) {
